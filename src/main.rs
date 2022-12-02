@@ -18,32 +18,32 @@ fn main() {
                     "C" => "S",
                     _   => "XXX"
                 };
-                let my_play = match plays[1] {
-                    "X" => "R",
-                    "Y" => "P",
-                    "Z" => "S",
-                    _   => "XXX"
+                let outcome = match plays[1] {
+                    "X" => 0,
+                    "Y" => 3,
+                    "Z" => 6,
+                    _   => 9999
                 };
+                let my_play: &str;
+                if outcome == 3 {
+                    my_play = opp_play;
+                } else {
+                    my_play = match (opp_play, outcome) {
+                        ("R", 0) => "S",
+                        ("R", 6) => "P",
+                        ("P", 0) => "R",
+                        ("P", 6) => "S",
+                        ("S", 0) => "P",
+                        ("S", 6) => "R",
+                        _ => "XXXX"
+                    };
+                }
                 let bonus = match my_play {
                     "R" => 1,
                     "P" => 2,
                     "S" => 3,
                     _   => 9999
                 };
-                let outcome: u16;
-                if my_play == opp_play {
-                    outcome = 3;
-                } else {
-                    outcome = match (opp_play, my_play) {
-                        ("R", "P") => 6,
-                        ("R", "S") => 0,
-                        ("P", "R") => 0,
-                        ("P", "S") => 6,
-                        ("S", "R") => 6,
-                        ("S", "P") => 0,
-                        _ => 8888
-                    };
-                }
                 let score = bonus + outcome;
                 total += score;
                 println!("{} : {}-{} ({} + {} = {}) -> {}", line_str, opp_play, my_play, bonus, outcome, score, total);
