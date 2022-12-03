@@ -1,56 +1,46 @@
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
+use std::collections::HashSet;
 
 fn main() {
     // File hosts must exist in current path before this produces output
-    if let Ok(lines) = read_lines("./2.input") {
+    if let Ok(lines) = read_lines("./3.input") {
         // Consumes the iterator, returns an (Optional) String
 
         let mut total = 0;
 
+        let alpha_offset = ('A' as u32) - 1;
+
+        println!("{}", ('a' as u32) - alpha_offset);
+
         for line in lines {
             if let Ok(line_str) = line {
-                let plays: Vec<&str> = line_str.split(" ").collect();
-                let opp_play = match plays[0] {
-                    "A" => "R",
-                    "B" => "P",
-                    "C" => "S",
-                    _   => "XXX"
-                };
-                let outcome = match plays[1] {
-                    "X" => 0,
-                    "Y" => 3,
-                    "Z" => 6,
-                    _   => 9999
-                };
-                let my_play: &str;
-                if outcome == 3 {
-                    my_play = opp_play;
-                } else {
-                    my_play = match (opp_play, outcome) {
-                        ("R", 0) => "S",
-                        ("R", 6) => "P",
-                        ("P", 0) => "R",
-                        ("P", 6) => "S",
-                        ("S", 0) => "P",
-                        ("S", 6) => "R",
-                        _ => "XXXX"
-                    };
+                let length = line_str.chars().count();
+                let (first, second) = line_str.split_at(length / 2);
+                let first_set: HashSet<char> = HashSet::from_iter(first.chars());
+                let second_set: HashSet<char> = HashSet::from_iter(second.chars());
+                let mut common = ' ';
+                for item in first_set.intersection(&second_set) {
+                    common = *item;
                 }
-                let bonus = match my_play {
-                    "R" => 1,
-                    "P" => 2,
-                    "S" => 3,
-                    _   => 9999
-                };
-                let score = bonus + outcome;
+                let score = char_to_score(common);
                 total += score;
-                println!("{} : {}-{} ({} + {} = {}) -> {}", line_str, opp_play, my_play, bonus, outcome, score, total);
+                println!("{} {}\n{}\n{}\nCommon: {}, Score: {}, Total: {}", length, line_str, first, second, common, score, total);
             }
         }
     }
 }
+
+fn char_to_score(character: char) -> u32 {
+    let value = character as u32;
+    if value >= 'a' as u32 && value <= 'z' as u32 {
+        return value - 'a' as u32 + 1;
+    } else {
+        return value - 'A' as u32 + 27;
+    }
+}
+
 
 // The output is wrapped in a Result to allow matching on errors
 // Returns an Iterator to the Reader of the lines of the file.
