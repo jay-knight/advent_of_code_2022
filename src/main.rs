@@ -20,15 +20,23 @@ fn main() {
                 println!("{:?}", second_range);
                 if first_range[0].parse::<u32>().unwrap() >=
                     second_range[0].parse::<u32>().unwrap() &&
+                    first_range[0].parse::<u32>().unwrap() <=
+                    second_range[1].parse::<u32>().unwrap()
+                    ||
+                    first_range[1].parse::<u32>().unwrap() >=
+                    second_range[0].parse::<u32>().unwrap() &&
                     first_range[1].parse::<u32>().unwrap() <=
                     second_range[1].parse::<u32>().unwrap()
                     ||
                     second_range[0].parse::<u32>().unwrap() >=
                     first_range[0].parse::<u32>().unwrap() &&
                     second_range[1].parse::<u32>().unwrap() <=
-                    first_range[1].parse::<u32>().unwrap() {
+                    first_range[1].parse::<u32>().unwrap()
+                {
                         total += 1;
-                        println!("One contains the other! {}", total);
+                        println!("They overlap! {}", total);
+                } else {
+                        println!("They don't overlap!");
                 }
 
             }
