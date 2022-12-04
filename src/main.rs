@@ -8,25 +8,40 @@ fn main() {
     if let Ok(lines) = read_lines("./3.input") {
         // Consumes the iterator, returns an (Optional) String
 
+        let mut elf_lines: Vec<String> = Vec::new();
+        let mut elves: Vec<HashSet<char>> = Vec::new();
+        let mut line_number = 0;
         let mut total = 0;
-
-        let alpha_offset = ('A' as u32) - 1;
-
-        println!("{}", ('a' as u32) - alpha_offset);
 
         for line in lines {
             if let Ok(line_str) = line {
-                let length = line_str.chars().count();
-                let (first, second) = line_str.split_at(length / 2);
-                let first_set: HashSet<char> = HashSet::from_iter(first.chars());
-                let second_set: HashSet<char> = HashSet::from_iter(second.chars());
-                let mut common = ' ';
-                for item in first_set.intersection(&second_set) {
-                    common = *item;
+                line_number += 1;
+                elf_lines.push(line_str);
+                let line_hash: HashSet<char> = HashSet::from_iter(elf_lines.last().expect("eh?").chars());
+                elves.push(line_hash);
+                if line_number % 3 != 0 {
+                    continue;
                 }
-                let score = char_to_score(common);
+                
+                let mut badges: Vec<char> = elves[0]
+                    .intersection(&elves[1])
+                    .into_iter()
+                    .map(|i| *i)
+                    .collect::<Vec<_>>();
+
+                badges = elves[2]
+                    .intersection(&HashSet::from_iter(badges))
+                    .into_iter()
+                    .map(|i| *i)
+                    .collect::<Vec<_>>();
+
+                let badge = badges.first().unwrap();
+                let score = char_to_score(*badge);
                 total += score;
-                println!("{} {}\n{}\n{}\nCommon: {}, Score: {}, Total: {}", length, line_str, first, second, common, score, total);
+                
+                println!("Lines:\n{}\n{}\n{}\nBadge: {}\nScore: {}\nTotal: {}", elf_lines[0], elf_lines[1], elf_lines[2], badge, score, total);
+                elf_lines.clear();
+                elves.clear();
             }
         }
     }
