@@ -28,15 +28,16 @@ fn main() {
             if let Ok(line_str) = line {
                 println!("{}", line_str);
                 let move_cap = move_re.captures(&line_str).unwrap();
-                let count = move_cap.get(1).unwrap().as_str().parse::<u32>().unwrap();
+                let count = move_cap.get(1).unwrap().as_str().parse::<usize>().unwrap();
                 let source = move_cap.get(2).unwrap().as_str().parse::<usize>().unwrap();
                 let dest = move_cap.get(3).unwrap().as_str().parse::<usize>().unwrap();
                 //println!("{} {} {}", count, source, dest);
 
-                for _ in 1..=count {
-                    let moving = stacks[source - 1].pop().unwrap();
-                    stacks[dest - 1].push(moving);
-                }
+                println!("{}", stacks[source - 1].len());
+                let split_point:usize = stacks[source - 1].len() - count;
+                println!("{}", split_point);
+                let mut moving = stacks[source - 1].split_off(split_point);
+                stacks[dest - 1].append(&mut moving);
                 print_stacks(&stacks);
             }
         }
