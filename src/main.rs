@@ -93,15 +93,19 @@ fn main() {
 
             }
         }
-        let mut total = 0;
+
+        println!("Total: {}", cwd.sizes.get("/").unwrap());
+        let free = 70000000 - cwd.sizes.get("/").unwrap();
+        let needed = 30000000 - free;
+        println!("Needed: {needed}");
+        let mut big_enough: Vec<usize> = Vec::new();
         for (dir, size) in cwd.sizes.iter() {
-            println!("{dir} has size {size}");
-            if size <= &100000 {
-                total += size;
-                println!("Including! ({total})");
+            if size >= &needed {
+                big_enough.push(*size);
             }
         }
-        println!("Total: {}", total);
+        big_enough.sort();
+        println!("{}", big_enough[0]);
     }
 }
 
