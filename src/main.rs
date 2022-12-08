@@ -1,112 +1,95 @@
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
-use std::collections::HashMap;
-use regex::Regex;
-use regex::RegexSet;
-
-struct Cwd {
-    dir: Vec<String>,
-    sizes: HashMap<String, usize>,
-}
-
-fn dir_to_string(dir: Vec<String>) -> String {
-    let mut dir_str = "/".to_string();
-    dir_str.push_str(dir.join("/").as_str());
-    return dir_str.to_string();
-}
-
-impl Cwd {
-    fn up(&mut self) {
-        //println!("----> in up()");
-        // remove last element from self.dir
-        self.dir.pop(); // last one is empty string
-        //println!("----> new directory: {}", self.to_string());
-    }
-
-    fn cd(&mut self, to_dir: String) {
-        //println!("----> in cd()");
-        self.dir.push(to_dir);
-        //println!("----> new directory: {}", self.to_string());
-        // add to_dir to the end of self.dir
-    }
-    
-    fn to_string(&self) -> String {
-        return dir_to_string(self.dir.to_vec());
-    }
-
-    fn add_bytes(&mut self, bytes: usize) {
-        let mut dir = self.dir.to_vec();
-        loop {
-            let dir_string = dir_to_string(dir.to_vec());
-            *self.sizes.entry(dir_string.to_string()).or_insert(0) += bytes;
-            println!("Adding {} to {:?} ({})", bytes, dir, self.sizes.get(&dir_string).unwrap());
-            if let None = dir.pop() {
-                break;
-            }
-        }
-    }
-}
 
 fn main() {
+
+    let mut grid: Vec<Vec<u32>> = Vec::new();
+    let mut total = 0;
+
     // File hosts must exist in current path before this produces output
-    if let Ok(lines) = read_lines("./7.input") {
-        // Consumes the iterator, returns an (Optional) String
-
-        let mut cwd = Cwd {
-            dir: vec![],
-            sizes: HashMap::new(),
-        };
-
-        let set = RegexSet::new(&[
-            r"^\$ cd /$",
-            r"^\$ cd \.\.$",
-            r"^\$ cd ([a-z]*)$",
-            r"^\$ ls$",
-            r"^dir (.*)$",
-            r"^(\d+) (.*)$",
-        ]).unwrap();
+    if let Ok(lines) = read_lines("./8.input") {
 
         for line in lines {
             if let Ok(line_str) = line {
-
-                let matches:Vec<_> = set.matches(&line_str).into_iter().collect();
-                println!("{line_str}");
-                match matches[0] {
-                    0 => (), //println!("--> cd /"),
-                    1 => cwd.up(),
-                    2 => cwd.cd(Regex::new(r"^\$ cd ([a-z]*)$").unwrap().captures(&line_str).unwrap().get(1).unwrap().as_str().to_string()),
-                    3 => (), //println!("--> ls"),
-                    4 => (), //println!("--> a directory"),
-                    5 => cwd.add_bytes(Regex::new(r"^(\d+) (.*)$")
-                           .unwrap()
-                           .captures(&line_str)
-                           .unwrap()
-                           .get(1)
-                           .unwrap()
-                           .as_str()
-                           .to_string()
-                           .parse::<usize>()
-                           .unwrap()),
-                    _ => println!("--> SOMETHING ELSE"),
+                grid.push(line_str
+                    .chars()
+                    .flat_map(|c| c.to_digit(10))
+                    .collect());
+            }
+        }
+        for column in 0..99 {
+            for row in 0..99 {
+                let can_see = can_see(&grid, column, row);
+                if can_see {
+                    total += 1;
                 }
-
+                println!("{:?}", can_see);
             }
         }
-
-        println!("Total: {}", cwd.sizes.get("/").unwrap());
-        let free = 70000000 - cwd.sizes.get("/").unwrap();
-        let needed = 30000000 - free;
-        println!("Needed: {needed}");
-        let mut big_enough: Vec<usize> = Vec::new();
-        for (dir, size) in cwd.sizes.iter() {
-            if size >= &needed {
-                big_enough.push(*size);
-            }
-        }
-        big_enough.sort();
-        println!("{}", big_enough[0]);
+        println!("Total Visible: {}", total);
     }
+}
+
+fn can_see(grid: &Vec<Vec<u32>>, row: usize, column: usize) -> bool {
+
+    let value = grid[row][column];
+    println!("{row} {column} {value}");
+
+    let mut can_see_top = true;
+    let mut can_see_right = true;
+    let mut can_see_bottom = true;
+    let mut can_see_left = true;
+
+    // Top
+    println!("From Top:");
+    for r in 0..row {
+        let this_value = grid[r][column];
+        println!("{this_value}");
+        if this_value >= value {
+            println!("Can't see!");
+            can_see_top = false;
+            break;
+        }
+    }
+    if can_see_top {return true};
+    // Right
+    println!("From Right:");
+    for c in column+1..99 {
+        //println!("Checking {row}, {c}");
+        let this_value = grid[row][c];
+        println!("{this_value}");
+        if this_value >= value {
+            println!("Can't see!");
+            can_see_right = false;
+            break;
+        }
+    }
+    if can_see_right {return true};
+    // Bottom
+    println!("From Bottom:");
+    for r in row+1..99 {
+        let this_value = grid[r][column];
+        println!("{this_value}");
+        if this_value >= value {
+            println!("Can't see!");
+            can_see_bottom = false;
+            break;
+        }
+    }
+    if can_see_bottom {return true};
+    // Left
+    println!("From Left:");
+    for c in 0..column {
+        let this_value = grid[row][c];
+        println!("{this_value}");
+        if this_value >= value {
+            println!("Can't see!");
+            can_see_left = false;
+            break;
+        }
+    }
+    return can_see_left;
 }
 
 
