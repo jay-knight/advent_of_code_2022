@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
+use std::cmp;
 
 fn main() {
 
@@ -18,78 +19,89 @@ fn main() {
                     .collect());
             }
         }
-        for column in 0..99 {
-            for row in 0..99 {
+        let mut max = 0;
+        let size = grid.len();
+        for column in 0..size {
+            for row in 0..size {
                 let can_see = can_see(&grid, column, row);
-                if can_see {
-                    total += 1;
-                }
-                println!("{:?}", can_see);
+                println!("Score: {can_see}");
+                max = cmp::max(max, can_see);
             }
         }
-        println!("Total Visible: {}", total);
+        println!("Max Visible: {}", max);
     }
 }
 
-fn can_see(grid: &Vec<Vec<u32>>, row: usize, column: usize) -> bool {
+fn can_see(grid: &Vec<Vec<u32>>, row: usize, column: usize) -> u32 {
 
     let value = grid[row][column];
+    let size = grid.len();
     println!("{row} {column} {value}");
 
-    let mut can_see_top = true;
-    let mut can_see_right = true;
-    let mut can_see_bottom = true;
-    let mut can_see_left = true;
+    let mut can_see_top = 0;
+    let mut can_see_right = 0;
+    let mut can_see_bottom = 0;
+    let mut can_see_left = 0;
+
 
     // Top
     println!("From Top:");
-    for r in 0..row {
-        let this_value = grid[r][column];
-        println!("{this_value}");
-        if this_value >= value {
-            println!("Can't see!");
-            can_see_top = false;
-            break;
+    if row == 0 {
+        can_see_top = 0;
+    } else {
+        for r in (0..=row-1).rev() {
+            let this_value = grid[r][column];
+            can_see_top += 1;
+            println!("{this_value}");
+            if this_value >= value {
+                break;
+            }
         }
     }
-    if can_see_top {return true};
     // Right
     println!("From Right:");
-    for c in column+1..99 {
-        //println!("Checking {row}, {c}");
-        let this_value = grid[row][c];
-        println!("{this_value}");
-        if this_value >= value {
-            println!("Can't see!");
-            can_see_right = false;
-            break;
+    if column == size {
+        can_see_right = 0;
+    } else {
+        for c in column+1..=size-1 {
+            let this_value = grid[row][c];
+            can_see_right += 1;
+            println!("{this_value}");
+            if this_value >= value {
+                break;
+            }
         }
     }
-    if can_see_right {return true};
     // Bottom
     println!("From Bottom:");
-    for r in row+1..99 {
-        let this_value = grid[r][column];
-        println!("{this_value}");
-        if this_value >= value {
-            println!("Can't see!");
-            can_see_bottom = false;
-            break;
+    if row == size {
+        can_see_bottom = 0;
+    } else {
+        for r in row+1..=size-1 {
+            let this_value = grid[r][column];
+            can_see_bottom += 1;
+            println!("{this_value}");
+            if this_value >= value {
+                break;
+            }
         }
     }
-    if can_see_bottom {return true};
     // Left
     println!("From Left:");
-    for c in 0..column {
-        let this_value = grid[row][c];
-        println!("{this_value}");
-        if this_value >= value {
-            println!("Can't see!");
-            can_see_left = false;
-            break;
+    if column == 0 {
+        can_see_left = 0;
+    } else {
+        for c in (0..column).rev() {
+            let this_value = grid[row][c];
+            can_see_left += 1;
+            println!("{this_value}");
+            if this_value >= value {
+                break;
+            }
         }
     }
-    return can_see_left;
+    println!("{can_see_top} {can_see_right} {can_see_bottom} {can_see_left}");
+    return can_see_top * can_see_right * can_see_bottom * can_see_left;
 }
 
 
