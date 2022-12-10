@@ -11,14 +11,20 @@ struct Computer {
 
 impl Computer {
     fn tick(&mut self) {
+        self.draw();
         self.clock += 1;
-        if (self.clock + 20) % 40 == 0 {
-            self.add_signal_strength();
-            println!("Clock: {}, X: {}: SS: {}", self.clock, self.xreg, self.total_signal_strength);
-        }
     }
-    fn add_signal_strength(&mut self) {
-        self.total_signal_strength += self.clock * self.xreg;
+    fn draw(&self) {
+        let column = self.clock % 40;
+        //print!("{}", column);
+        if column == self.xreg || column == self.xreg + 1 || column == self.xreg - 1 {
+            print!("#");
+        } else {
+            print!(".");
+        }
+        if column == 39 {
+            println!("");
+        }
     }
     fn noop(&mut self) {
         self.tick();
@@ -43,7 +49,7 @@ fn main() {
         for line in lines {
             if let Ok(line_str) = line {
                 let matches:Vec<_> = set.matches(&line_str).into_iter().collect();
-                println!("{line_str} {:?}", matches);
+                //println!("{line_str} {:?}", matches);
                 match matches[0] {
                     0 => compy.noop(),
                     1 => {
