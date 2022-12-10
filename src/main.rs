@@ -1,108 +1,90 @@
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
-use std::cmp;
+use std::collections::HashSet;
+
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
+struct Position {
+    x: i32,
+    y: i32,
+}
+
+impl Position {
+    fn up(&mut self) {
+        self.step(0, 1);
+    }
+    fn down(&mut self) {
+        self.step(0, -1);
+    }
+    fn left(&mut self) {
+        self.step(-1, 0);
+    }
+    fn right(&mut self) {
+        self.step(1, 0);
+    }
+    fn step(&mut self, x: i32, y: i32) {
+        self.x += x;
+        self.y += y;
+    }
+
+    fn diff(&self, other: &Position) -> Position {
+        let other = Position {
+            x: self.x - other.x,
+            y: self.y - other.y,
+        };
+        return other;
+    }
+}
 
 fn main() {
 
-    let mut grid: Vec<Vec<u32>> = Vec::new();
-    let mut total = 0;
+    let mut head_position = Position { x: 0, y: 0 }; 
+    let mut tail_position = Position { x: 0, y: 0 }; 
+
+    let mut tail_positions: HashSet<Position> = HashSet::new();
+    tail_positions.insert(tail_position);
 
     // File hosts must exist in current path before this produces output
-    if let Ok(lines) = read_lines("./8.input") {
+    if let Ok(lines) = read_lines("./9.input") {
 
         for line in lines {
             if let Ok(line_str) = line {
-                grid.push(line_str
-                    .chars()
-                    .flat_map(|c| c.to_digit(10))
-                    .collect());
+                let parts: Vec<String> = line_str.split(" ").map(|s| s.to_string()).collect();
+                let (direction, steps) = (&parts[0], parts[1].parse::<u32>().unwrap());
+                println!("{line_str} -> step {direction} {steps} times");
+                for _ in 0..steps {
+                    // move the head
+                    match direction.as_str() {
+                        "U" => head_position.up(),
+                        "D" => head_position.down(),
+                        "L" => head_position.left(),
+                        "R" => head_position.right(),
+                        _ => println!("WHHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAT?"),
+                    }
+                    println!("New head_position: {}, {}", head_position.x, head_position.y);
+                    let diff = head_position.diff(&tail_position);
+                    println!("Diff {}, {}", diff.x, diff.y);
+
+                    if diff.x.abs() + diff.y.abs() == 3 {
+                        println!("Need to move diagonally");
+                        tail_position.step(
+                                diff.x / diff.x.abs(),
+                                diff.y / diff.y.abs(),
+                            )
+                    } else if diff.x.abs() == 2  || diff.y.abs() == 2 {
+                        // Need to move one step
+                        println!("Need to move one step");
+                        tail_position.step(diff.x / 2, diff.y / 2)
+                    }
+                    tail_positions.insert(tail_position);
+                    println!("New tail: {}, {}", tail_position.x, tail_position.y);
+                }
             }
         }
-        let mut max = 0;
-        let size = grid.len();
-        for column in 0..size {
-            for row in 0..size {
-                let can_see = can_see(&grid, column, row);
-                println!("Score: {can_see}");
-                max = cmp::max(max, can_see);
-            }
-        }
-        println!("Max Visible: {}", max);
     }
+    println!("Tail positions: {:?}", tail_positions.len());
 }
 
-fn can_see(grid: &Vec<Vec<u32>>, row: usize, column: usize) -> u32 {
-
-    let value = grid[row][column];
-    let size = grid.len();
-    println!("{row} {column} {value}");
-
-    let mut can_see_top = 0;
-    let mut can_see_right = 0;
-    let mut can_see_bottom = 0;
-    let mut can_see_left = 0;
-
-
-    // Top
-    println!("From Top:");
-    if row == 0 {
-        can_see_top = 0;
-    } else {
-        for r in (0..=row-1).rev() {
-            let this_value = grid[r][column];
-            can_see_top += 1;
-            println!("{this_value}");
-            if this_value >= value {
-                break;
-            }
-        }
-    }
-    // Right
-    println!("From Right:");
-    if column == size {
-        can_see_right = 0;
-    } else {
-        for c in column+1..=size-1 {
-            let this_value = grid[row][c];
-            can_see_right += 1;
-            println!("{this_value}");
-            if this_value >= value {
-                break;
-            }
-        }
-    }
-    // Bottom
-    println!("From Bottom:");
-    if row == size {
-        can_see_bottom = 0;
-    } else {
-        for r in row+1..=size-1 {
-            let this_value = grid[r][column];
-            can_see_bottom += 1;
-            println!("{this_value}");
-            if this_value >= value {
-                break;
-            }
-        }
-    }
-    // Left
-    println!("From Left:");
-    if column == 0 {
-        can_see_left = 0;
-    } else {
-        for c in (0..column).rev() {
-            let this_value = grid[row][c];
-            can_see_left += 1;
-            println!("{this_value}");
-            if this_value >= value {
-                break;
-            }
-        }
-    }
-    println!("{can_see_top} {can_see_right} {can_see_bottom} {can_see_left}");
-    return can_see_top * can_see_right * can_see_bottom * can_see_left;
-}
 
 
 // The output is wrapped in a Result to allow matching on errors
