@@ -1,71 +1,96 @@
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
-use regex::RegexSet;
 
-struct Computer {
-    clock: i32,
-    xreg: i32,
-    total_signal_strength: i32,
+
+#[derive(Debug, Clone)]
+struct Monkey {
+    items: Vec<i64>,
+    true_recpt: i64,
+    false_recpt: i64,
+    inspections: i64,
+    operation: fn(i64) -> i64,
+    test: fn(i64) -> bool,
 }
 
-impl Computer {
-    fn tick(&mut self) {
-        self.draw();
-        self.clock += 1;
-    }
-    fn draw(&self) {
-        let column = self.clock % 40;
-        //print!("{}", column);
-        if column == self.xreg || column == self.xreg + 1 || column == self.xreg - 1 {
-            print!("#");
-        } else {
-            print!(".");
-        }
-        if column == 39 {
-            println!("");
-        }
-    }
-    fn noop(&mut self) {
-        self.tick();
-    }
-
-    fn addx(&mut self, arg: i32) {
-        self.tick();
-        self.tick();
-        self.xreg += arg;
+impl Monkey {
+    fn new(
+        true_recpt: i64,
+        false_recpt: i64,
+        items: Vec<i64>,
+        operation: fn(i64) -> i64,
+        test: fn(i64) -> bool,
+    ) -> Monkey {
+        return Monkey {
+            items: items,
+            true_recpt: true_recpt,
+            false_recpt: false_recpt,
+            operation: operation,
+            test: test,
+            inspections: 0,
+        };
     }
 }
 
 fn main() {
-    let mut compy = Computer{clock: 0, xreg: 1, total_signal_strength: 0};
 
-    let set = RegexSet::new(&[
-        r"^noop$",
-        r"^addx -?\d+$",
-    ]).unwrap();
-    // File hosts must exist in current path before this produces output
-    if let Ok(lines) = read_lines("./10.input") {
-        for line in lines {
-            if let Ok(line_str) = line {
-                let matches:Vec<_> = set.matches(&line_str).into_iter().collect();
-                //println!("{line_str} {:?}", matches);
-                match matches[0] {
-                    0 => compy.noop(),
-                    1 => {
-                        let arg = line_str
-                            .split(" ")
-                            .map(|s| s.to_string())
-                            .collect::<Vec<String>>()[1]
-                            .parse::<i32>()
-                            .unwrap();
-                        compy.addx(arg);
-                    },
-                    _ => panic!("Unexpected input!"),
-                }
+    let mut monkeys: Vec<Monkey> = Vec::new();
+
+    monkeys.push(Monkey::new(4, 3, vec![80],                             |v| v * 5, |v| v %  2 == 0));
+    monkeys.push(Monkey::new(5, 6, vec![75, 83, 74],                     |v| v + 7, |v| v %  7 == 0));
+    monkeys.push(Monkey::new(7, 0, vec![86, 67, 61, 96, 52, 63, 73],     |v| v + 5, |v| v %  3 == 0));
+    monkeys.push(Monkey::new(1, 5, vec![85, 83, 55, 85, 57, 70, 85, 52], |v| v + 8, |v| v % 17 == 0));
+    monkeys.push(Monkey::new(3, 1, vec![67, 75, 91, 72, 89],             |v| v + 4, |v| v % 11 == 0));
+    monkeys.push(Monkey::new(6, 2, vec![66, 64, 68, 92, 68, 77],         |v| v * 2, |v| v % 19 == 0));
+    monkeys.push(Monkey::new(2, 7, vec![97, 94, 79, 88],                 |v| v * v, |v| v %  5 == 0));
+    monkeys.push(Monkey::new(4, 0, vec![77, 85],                         |v| v + 6, |v| v % 13 == 0));
+
+    for time in 0..20 {
+        println!("");
+        println!("==={time}=== ({})", monkeys.len());
+        for i in 0..monkeys.len() {
+            println!("");
+            println!("Monkey {i}: ");
+            if monkeys[i].items.len() == 0 {
+                continue;
             }
+            for j in 0..monkeys[i].items.len() {
+                println!("");
+                let mut value = monkeys[i].items.remove(0);
+                print!("{value}");
+                value = (monkeys[i].operation)(value);
+                monkeys[i].inspections += 1;
+                print!(" -> {value}");
+                value /= 3;
+                print!(" -> {value}");
+                print!(" -> test?");
+                let mut throw_to:usize = 99;
+                if (monkeys[i].test)(value) {
+                    throw_to = monkeys[i].true_recpt as usize;
+                    print!(" YES!");
+                } else {
+                    throw_to = monkeys[i].false_recpt as usize;
+                    print!(" No!");
+                }
+                print!(" Throw to {throw_to}");
+                monkeys[throw_to].items.push(value);
+            }
+
         }
     }
+    println!("");
+    for i in 0..monkeys.len() {
+        println!("{i}: {}", monkeys[i].inspections);
+    }
+
+
+    // File hosts must exist in current path before this produces output
+    //if let Ok(lines) = read_lines("./10.input") {
+    //    for line in lines {
+    //        if let Ok(line_str) = line {
+    //        }
+    //    }
+    //}
 }
 
 
