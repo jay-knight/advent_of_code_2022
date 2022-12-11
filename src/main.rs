@@ -2,24 +2,23 @@ use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
 
-
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 struct Monkey {
-    items: Vec<i64>,
-    true_recpt: i64,
-    false_recpt: i64,
-    inspections: i64,
-    operation: fn(i64) -> i64,
-    test: fn(i64) -> bool,
+    items: Vec<u128>,
+    true_recpt: usize,
+    false_recpt: usize,
+    inspections: u64,
+    operation: fn(&u128) -> u128,
+    test: fn(&u128) -> bool,
 }
 
 impl Monkey {
     fn new(
-        true_recpt: i64,
-        false_recpt: i64,
-        items: Vec<i64>,
-        operation: fn(i64) -> i64,
-        test: fn(i64) -> bool,
+        true_recpt: usize,
+        false_recpt: usize,
+        items: Vec<u128>,
+        operation: fn(&u128) -> u128,
+        test: fn(&u128) -> bool,
     ) -> Monkey {
         return Monkey {
             items: items,
@@ -36,47 +35,58 @@ fn main() {
 
     let mut monkeys: Vec<Monkey> = Vec::new();
 
-    monkeys.push(Monkey::new(4, 3, vec![80],                             |v| v * 5, |v| v %  2 == 0));
-    monkeys.push(Monkey::new(5, 6, vec![75, 83, 74],                     |v| v + 7, |v| v %  7 == 0));
-    monkeys.push(Monkey::new(7, 0, vec![86, 67, 61, 96, 52, 63, 73],     |v| v + 5, |v| v %  3 == 0));
-    monkeys.push(Monkey::new(1, 5, vec![85, 83, 55, 85, 57, 70, 85, 52], |v| v + 8, |v| v % 17 == 0));
-    monkeys.push(Monkey::new(3, 1, vec![67, 75, 91, 72, 89],             |v| v + 4, |v| v % 11 == 0));
-    monkeys.push(Monkey::new(6, 2, vec![66, 64, 68, 92, 68, 77],         |v| v * 2, |v| v % 19 == 0));
-    monkeys.push(Monkey::new(2, 7, vec![97, 94, 79, 88],                 |v| v * v, |v| v %  5 == 0));
-    monkeys.push(Monkey::new(4, 0, vec![77, 85],                         |v| v + 6, |v| v % 13 == 0));
+    monkeys.push(Monkey::new(4, 3, vec![80],
+        |v| v * 5, |v| v %  2 == 0));
+    monkeys.push(Monkey::new(5, 6, vec![75, 83, 74],
+        |v| v + 7, |v| v %  7 == 0));
+    monkeys.push(Monkey::new(7, 0, vec![86, 67, 61, 96, 52, 63, 73],
+        |v| v + 5, |v| v %  3 == 0));
+    monkeys.push(Monkey::new(1, 5, vec![85, 83, 55, 85, 57, 70, 85, 52],
+        |v| v + 8, |v| v % 17 == 0));
+    monkeys.push(Monkey::new(3, 1, vec![67, 75, 91, 72, 89],
+        |v| v + 4, |v| v % 11 == 0));
+    monkeys.push(Monkey::new(6, 2, vec![66, 64, 68, 92, 68, 77],
+        |v| v * 2, |v| v % 19 == 0));
+    monkeys.push(Monkey::new(2, 7, vec![97, 94, 79, 88],
+        |v| v.pow(2), |v| v %  5 == 0));
+    monkeys.push(Monkey::new(4, 0, vec![77, 85],
+        |v| v + 6, |v| v % 13 == 0));
 
-    for time in 0..20 {
-        println!("");
+    for time in 0..10_000 {
+        //println!("");
         println!("==={time}=== ({})", monkeys.len());
         for i in 0..monkeys.len() {
-            println!("");
-            println!("Monkey {i}: ");
+            print!("M{i}");
+            //println!("");
+            //println!("Monkey {i}: ");
             if monkeys[i].items.len() == 0 {
                 continue;
             }
-            for j in 0..monkeys[i].items.len() {
-                println!("");
+            for _ in 0..monkeys[i].items.len() {
+                print!(".");
+                //println!("");
                 let mut value = monkeys[i].items.remove(0);
-                print!("{value}");
-                value = (monkeys[i].operation)(value);
+                //print!("{value}");
+                value = (monkeys[i].operation)(&value);
                 monkeys[i].inspections += 1;
-                print!(" -> {value}");
-                value /= 3;
-                print!(" -> {value}");
-                print!(" -> test?");
+                //print!(" -> {value}");
+                //value /= 3;
+                //print!(" -> {value}");
+                //print!(" -> test?");
                 let mut throw_to:usize = 99;
-                if (monkeys[i].test)(value) {
+                if (monkeys[i].test)(&value) {
                     throw_to = monkeys[i].true_recpt as usize;
-                    print!(" YES!");
+                    //print!(" YES!");
                 } else {
                     throw_to = monkeys[i].false_recpt as usize;
-                    print!(" No!");
+                    //print!(" No!");
                 }
-                print!(" Throw to {throw_to}");
-                monkeys[throw_to].items.push(value);
+                //print!(" Throw to {throw_to}");
+                monkeys[throw_to].items.push(value % 9699690);
             }
 
         }
+        println!("");
     }
     println!("");
     for i in 0..monkeys.len() {
