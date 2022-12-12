@@ -3,7 +3,7 @@
 These are my solutions for Advent of Code 2022. I'm using Rust, starting from basically zero, so you can see my code go from kind of horrible to not quite as horrible!
 
 Day | Star 1 | Star 2
-
+----|--------|-------|
 1 | [solution](https://github.com/jay-knight/advent_of_code_2022/blob/s1/src/main.rs) | [solution](https://github.com/jay-knight/advent_of_code_2022/blob/s2/src/main.rs) |
 2 | [solution](https://github.com/jay-knight/advent_of_code_2022/blob/s3/src/main.rs) | [solution](https://github.com/jay-knight/advent_of_code_2022/blob/s4/src/main.rs) |
 3 | [solution](https://github.com/jay-knight/advent_of_code_2022/blob/s5/src/main.rs) | [solution](https://github.com/jay-knight/advent_of_code_2022/blob/s6/src/main.rs) |
@@ -29,4 +29,3 @@ Day | Star 1 | Star 2
 23 | | |
 24 | | |
 25 | | |
-
