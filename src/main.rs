@@ -16,11 +16,31 @@ impl Pair {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 enum Val {
     Number(u8),
     List(Vec<Val>),
 }
+impl Ord for Val {
+    fn cmp(&self, other: &Self) -> Ordering {
+        return compare(self.clone(), other.clone());
+    }
+}
+impl PartialOrd for Val {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+impl PartialEq for Val {
+    fn eq(&self, other: &Self) -> bool {
+        return match self.cmp(other) {
+            Ordering::Equal => true,
+            _ => false,
+        }
+    }
+}
+
+impl Eq for Val { }
 
 fn compare_vector(left: Vec<Val>, right: Vec<Val>) -> Ordering {
     for i in 0..std::cmp::min(left.len(), right.len()) {
@@ -48,6 +68,7 @@ fn main() {
 
     let mut sum = 0usize;
     let mut pairs: Vec<Pair> = Vec::new();
+    let mut packets: Vec<Val> = Vec::new();
     //{{{{{
 pairs.push(Pair::new(Val::List(vec![Val::List(vec![Val::Number(0),Val::List(vec![Val::List(vec![]),Val::List(vec![]),Val::List(vec![Val::Number(10),Val::Number(6)]),Val::Number(0)]),Val::List(vec![Val::Number(5)]),Val::Number(5),Val::Number(9)]),Val::List(vec![Val::List(vec![Val::Number(5)]),Val::Number(7)])]),
 Val::List(vec![Val::List(vec![Val::List(vec![Val::List(vec![Val::Number(7),Val::Number(10),Val::Number(2),Val::Number(0)])]),Val::List(vec![Val::List(vec![Val::Number(5)]),Val::List(vec![Val::Number(10),Val::Number(1),Val::Number(7)]),Val::List(vec![]),Val::List(vec![]),Val::Number(9)]),Val::List(vec![Val::List(vec![Val::Number(0),Val::Number(6),Val::Number(2)])])]),Val::List(vec![])])));
@@ -500,15 +521,22 @@ pairs.push(Pair::new(Val::List(vec![Val::List(vec![Val::Number(1),Val::List(vec!
 Val::List(vec![Val::List(vec![Val::Number(9),Val::List(vec![Val::List(vec![Val::Number(9),Val::Number(6),Val::Number(10)]),Val::Number(8)])]),Val::List(vec![Val::Number(6),Val::List(vec![Val::Number(5),Val::Number(2),Val::List(vec![Val::Number(4),Val::Number(9),Val::Number(2),Val::Number(7)]),Val::List(vec![Val::Number(9),Val::Number(7)]),Val::Number(10)])])])));
     //}}}}}
 
-    for (i, pair) in pairs.iter().enumerate() {
-        match compare(pair.left.clone(), pair.right.clone()) {
-            Ordering::Less => {println!("{i} is Less"); sum += i+1},
-            Ordering::Greater => {println!("{i} is Greater")},
-            Ordering::Equal => panic!("That shouldn't happen"),
-
+    for p in pairs {
+        packets.push(p.left);
+        packets.push(p.right);
+    }
+    let two = Val::List(vec![Val::List(vec![Val::Number(2)])]);
+    let six = Val::List(vec![Val::List(vec![Val::Number(6)])]);
+    packets.push(two.clone());
+    packets.push(six.clone());
+    packets.sort();
+    for (i, p) in packets.iter().enumerate() {
+        if *p == two {
+            println!("Two at {}", i+1);
+        } else if *p == six {
+            println!("Six at {}", i+1);
         }
     }
-    println!("{sum}");
 
 }
 
