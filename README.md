@@ -17,7 +17,7 @@ Day | Star 1 | Star 2
 11 | [solution](https://github.com/jay-knight/advent_of_code_2022/blob/s21/src/main.rs) | [solution](https://github.com/jay-knight/advent_of_code_2022/blob/s22/src/main.rs) |
 12 | | |
 13 | [solution](https://github.com/jay-knight/advent_of_code_2022/blob/s25/src/main.rs) | [solution](https://github.com/jay-knight/advent_of_code_2022/blob/s26/src/main.rs) |
-14 | | |
+14 | [solution](https://github.com/jay-knight/advent_of_code_2022/blob/s27/src/main.rs) | [solution](https://github.com/jay-knight/advent_of_code_2022/blob/s28/src/main.rs) |
 15 | | |
 16 | | |
 17 | | |

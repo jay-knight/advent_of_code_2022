@@ -6,8 +6,8 @@ use std::cmp::{min, max};
 
 #[derive(Debug, Copy, Clone, Eq, Hash, PartialEq)]
 struct Point {
-    x: usize,
-    y: usize,
+    x: isize,
+    y: isize,
 }
 
 enum Thing {
@@ -55,8 +55,8 @@ fn main() {
                 for point in points {
                     let (y,x) = point.split_once(",").unwrap();
                     point_vec.push(Point{
-                        x: x.parse::<usize>().unwrap(),
-                        y: y.parse::<usize>().unwrap(),
+                        x: x.parse::<isize>().unwrap(),
+                        y: y.parse::<isize>().unwrap(),
                     });
                 }
                 for p in 1..point_vec.len() {
@@ -70,16 +70,29 @@ fn main() {
             }
         }
     }
+    let points = points_between(
+        &Point {
+            x: 159,
+            y: -100
+        },
+        &Point {
+            x: 159,
+            y: 1100
+        });
+    for ap in points {
+        area.insert(ap, Thing::Rock);
+    }
 
     let mut c = 0u32;
     'outer: loop {
         c += 1;
+        println!("{c}");
         // start a new sand at 0, 500
         let mut sand_point = Point{ x : 0, y : 500};
         loop {
-            if sand_point.y > maxy {
+            if sand_point.x > 159 {
                 // We're full
-                break 'outer;
+                panic!("Overflowed, make a bigger floor");
             } else if ! area.contains_key(&Point{x: sand_point.x + 1, y: sand_point.y}) {
                 sand_point = Point{x: sand_point.x + 1, y: sand_point.y};
                 continue;
@@ -94,7 +107,11 @@ fn main() {
             } else {
                 // nowhere else to go, add the sand to the area
                 area.insert(sand_point, Thing::Sand);
-                break;
+                if sand_point.x == 0 && sand_point.y == 500 {
+                    break 'outer;
+                }else {
+                    break;
+                }
             }
         }
     }
