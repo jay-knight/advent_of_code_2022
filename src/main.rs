@@ -1,123 +1,94 @@
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
-use std::collections::HashMap;
+use std::collections::HashSet;
 use std::cmp::{min, max};
 
-#[derive(Debug, Copy, Clone, Eq, Hash, PartialEq)]
 struct Point {
-    x: isize,
-    y: isize,
+    x: i32,
+    y: i32,
 }
 
-enum Thing {
-    Rock,
-    Sand,
+struct Pair {
+    sensor: Point,
+    beacon: Point,
 }
 
-fn points_between(first: &Point, second: &Point) -> Vec<Point> {
-    let mut points: Vec<Point> = Vec::new();
-    let xrange = min(first.x, second.x)..=max(first.x, second.x);
-    let yrange = min(first.y, second.y)..=max(first.y, second.y);
-
-    for x in xrange.clone() {
-        for y in yrange.clone() {
-            points.push(Point{x:x, y:y});
-        }
-    }
-    return points;
-}
-
-fn print_area(area: HashMap<Point, Thing>) {
-    let maxy = 561;
-    let maxx = 157;
-    for x in 0..=maxx {
-        for y in 0..=maxy {
-            match area.get(&Point{x:x, y:y}) {
-                Some(Thing::Rock) => print!("#"),
-                Some(Thing::Sand) => print!("o"),
-                None => print!(" "),
-            }
-        }
-        println!("");
+impl Pair {
+    fn distance(&self) -> i32 {
+        (self.beacon.x - self.sensor.x).abs() + (self.beacon.y - self.sensor.y).abs()
     }
 }
 
 fn main() {
-    let mut area: HashMap<Point, Thing> = HashMap::new();
-    let maxy = 561;
-    let maxx = 157;
-    if let Ok(lines) = read_lines("./14.input") {
-        for line in lines {
-            if let Ok(line_str) = line {
-                let points: Vec<String> = line_str.split(" -> ").map(|s| s.to_string()).collect();
-                let mut point_vec: Vec<Point> = Vec::new();
-                for point in points {
-                    let (y,x) = point.split_once(",").unwrap();
-                    point_vec.push(Point{
-                        x: x.parse::<isize>().unwrap(),
-                        y: y.parse::<isize>().unwrap(),
-                    });
-                }
-                for p in 1..point_vec.len() {
-                    let fp = point_vec[p-1];
-                    let sp = point_vec[p];
-                    let points = points_between(&fp, &sp);
-                    for ap in points {
-                        area.insert(ap, Thing::Rock);
-                    }
-                }
+    let mut pairs: Vec<Pair> = Vec::new();
+
+    let the_y: i32 = 2000000;
+    pairs.push(Pair{sensor: Point{x: 3088287, y: 2966967}, beacon: Point{x: 3340990,  y: 2451747}});
+    pairs.push(Pair{sensor: Point{x: 289570,  y: 339999 }, beacon: Point{x: 20077,    y: 1235084}});
+    pairs.push(Pair{sensor: Point{x: 1940197, y: 3386754}, beacon: Point{x: 2010485,  y: 3291030}});
+    pairs.push(Pair{sensor: Point{x: 1979355, y: 2150711}, beacon: Point{x: 1690952,  y: 2000000}});
+    pairs.push(Pair{sensor: Point{x: 2859415, y: 1555438}, beacon: Point{x: 3340990,  y: 2451747}});
+    pairs.push(Pair{sensor: Point{x: 1015582, y: 2054755}, beacon: Point{x: 1690952,  y: 2000000}});
+    pairs.push(Pair{sensor: Point{x: 1794782, y: 3963737}, beacon: Point{x: 2183727,  y: 4148084}});
+    pairs.push(Pair{sensor: Point{x: 2357608, y: 2559811}, beacon: Point{x: 2010485,  y: 3291030}});
+    pairs.push(Pair{sensor: Point{x: 2936,    y: 1218210}, beacon: Point{x: 20077,    y: 1235084}});
+    pairs.push(Pair{sensor: Point{x: 2404143, y: 3161036}, beacon: Point{x: 2010485,  y: 3291030}});
+    pairs.push(Pair{sensor: Point{x: 12522,   y: 1706324}, beacon: Point{x: 20077,    y: 1235084}});
+    pairs.push(Pair{sensor: Point{x: 1989162, y: 3317864}, beacon: Point{x: 2010485,  y: 3291030}});
+    pairs.push(Pair{sensor: Point{x: 167388,  y: 3570975}, beacon: Point{x: -1018858, y: 4296788}});
+    pairs.push(Pair{sensor: Point{x: 1586527, y: 2233885}, beacon: Point{x: 1690952,  y: 2000000}});
+    pairs.push(Pair{sensor: Point{x: 746571,  y: 1442967}, beacon: Point{x: 20077,    y: 1235084}});
+    pairs.push(Pair{sensor: Point{x: 3969726, y: 3857699}, beacon: Point{x: 3207147,  y: 4217920}});
+    pairs.push(Pair{sensor: Point{x: 1403393, y: 2413121}, beacon: Point{x: 1690952,  y: 2000000}});
+    pairs.push(Pair{sensor: Point{x: 2343717, y: 3649198}, beacon: Point{x: 2183727,  y: 4148084}});
+    pairs.push(Pair{sensor: Point{x: 1473424, y: 688269 }, beacon: Point{x: 2053598,  y: -169389}});
+    pairs.push(Pair{sensor: Point{x: 2669347, y: 190833 }, beacon: Point{x: 2053598,  y: -169389}});
+    pairs.push(Pair{sensor: Point{x: 2973167, y: 3783783}, beacon: Point{x: 3207147,  y: 4217920}});
+    pairs.push(Pair{sensor: Point{x: 2011835, y: 3314181}, beacon: Point{x: 2010485,  y: 3291030}});
+    pairs.push(Pair{sensor: Point{x: 1602224, y: 2989728}, beacon: Point{x: 2010485,  y: 3291030}});
+    pairs.push(Pair{sensor: Point{x: 3928889, y: 1064434}, beacon: Point{x: 3340990,  y: 2451747}});
+    pairs.push(Pair{sensor: Point{x: 2018358, y: 3301778}, beacon: Point{x: 2010485,  y: 3291030}});
+    pairs.push(Pair{sensor: Point{x: 1811905, y: 2084187}, beacon: Point{x: 1690952,  y: 2000000}});
+    pairs.push(Pair{sensor: Point{x: 1767697, y: 1873118}, beacon: Point{x: 1690952,  y: 2000000}});
+    pairs.push(Pair{sensor: Point{x: 260786,  y: 1154525}, beacon: Point{x: 20077,    y: 1235084}});
+
+    // example data:
+    //let the_y: i32 = 10;
+    //pairs.push(Pair{sensor: Point{x: 2, y: 18}, beacon: Point{x: -2, y: 15}});
+    //pairs.push(Pair{sensor: Point{x: 9, y: 16}, beacon: Point{x: 10, y: 16}});
+    //pairs.push(Pair{sensor: Point{x: 13, y: 2}, beacon: Point{x: 15, y: 3}});
+    //pairs.push(Pair{sensor: Point{x: 12, y: 14}, beacon: Point{x: 10, y: 16}});
+    //pairs.push(Pair{sensor: Point{x: 10, y: 20}, beacon: Point{x: 10, y: 16}});
+    //pairs.push(Pair{sensor: Point{x: 14, y: 17}, beacon: Point{x: 10, y: 16}});
+    //pairs.push(Pair{sensor: Point{x: 8, y: 7}, beacon: Point{x: 2, y: 10}});
+    //pairs.push(Pair{sensor: Point{x: 2, y: 0}, beacon: Point{x: 2, y: 10}});
+    //pairs.push(Pair{sensor: Point{x: 0, y: 11}, beacon: Point{x: 2, y: 10}});
+    //pairs.push(Pair{sensor: Point{x: 20, y: 14}, beacon: Point{x: 25, y: 17}});
+    //pairs.push(Pair{sensor: Point{x: 17, y: 20}, beacon: Point{x: 21, y: 22}});
+    //pairs.push(Pair{sensor: Point{x: 16, y: 7}, beacon: Point{x: 15, y: 3}});
+    //pairs.push(Pair{sensor: Point{x: 14, y: 3}, beacon: Point{x: 15, y: 3}});
+    //pairs.push(Pair{sensor: Point{x: 20, y: 1}, beacon: Point{x: 15, y: 3}});
+
+    let mut ys: HashSet<i32> = HashSet::new();
+    for pair in pairs {
+        let distance = pair.distance();
+        if (pair.sensor.y - the_y).abs() <= distance {
+            let left  = pair.sensor.x - (distance - (pair.sensor.y - the_y).abs());
+            let right = pair.sensor.x + (distance - (pair.sensor.y - the_y).abs());
+            println!("Covers {left} - {right}");
+            let mut n = 0u32;
+            for y in left..=right {
+                ys.insert(y);
+                n += 1;
             }
+            println!("{n}");
         }
     }
-    let points = points_between(
-        &Point {
-            x: 159,
-            y: -100
-        },
-        &Point {
-            x: 159,
-            y: 1100
-        });
-    for ap in points {
-        area.insert(ap, Thing::Rock);
-    }
-
-    let mut c = 0u32;
-    'outer: loop {
-        c += 1;
-        println!("{c}");
-        // start a new sand at 0, 500
-        let mut sand_point = Point{ x : 0, y : 500};
-        loop {
-            if sand_point.x > 159 {
-                // We're full
-                panic!("Overflowed, make a bigger floor");
-            } else if ! area.contains_key(&Point{x: sand_point.x + 1, y: sand_point.y}) {
-                sand_point = Point{x: sand_point.x + 1, y: sand_point.y};
-                continue;
-            } else if ! area.contains_key(&Point{x: sand_point.x + 1, y: sand_point.y - 1}) {
-                // Down and left
-                sand_point = Point{x: sand_point.x + 1, y: sand_point.y - 1};
-                continue;
-            } else if ! area.contains_key(&Point{x: sand_point.x + 1, y: sand_point.y + 1}) {
-                // Down and right
-                sand_point = Point{x: sand_point.x + 1, y: sand_point.y + 1};
-                continue;
-            } else {
-                // nowhere else to go, add the sand to the area
-                area.insert(sand_point, Thing::Sand);
-                if sand_point.x == 0 && sand_point.y == 500 {
-                    break 'outer;
-                }else {
-                    break;
-                }
-            }
-        }
-    }
-    print_area(area);
-    println!("All Full, {c} grains of sand!");
-
+    //let mut ys = ys.iter().collect::<Vec<&i32>>();
+    //ys.sort();
+    //println!("{:?}", ys);
+    println!("{:?}", ys.len() - 1); // -1 because one beacon is on this line
 
 }
 
