@@ -1,0 +1,122 @@
+digraph G {
+    TZ[label="TZ-0"]
+    LH[label="LH-0"]
+    AA[label="AA-0"]
+    GP[label="GP-0"]
+    GN[label="GN-0"]
+    QO[label="QO-0"]
+    JT[label="JT-22"]
+    DF[label="DF-0"]
+    UM[label="UM-0"]
+    KJ[label="KJ-0"]
+    UX[label="UX-23"]
+    ZI[label="ZI-0"]
+    YF[label="YF-0"]
+    SX[label="SX-0"]
+    KZ[label="KZ-0"]
+    IH[label="IH-0"]
+    EL[label="EL-0"]
+    CD[label="CD-0"]
+    OR[label="OR-0"]
+    EK[label="EK-19"]
+    UE[label="UE-0"]
+    WQ[label="WQ-0"]
+    XI[label="XI-0"]
+    GO[label="GO-0"]
+    IR[label="IR-0"]
+    WY[label="WY-0"]
+    JH[label="JH-0"]
+    WM[label="WM-0"]
+    OS[label="OS-0"]
+    AE[label="AE-0"]
+    LG[label="LG-0"]
+    IS[label="IS-0"]
+    XU[label="XU-0"]
+    KL[label="KL-0"]
+    LV[label="LV-0"]
+    UI[label="UI-0"]
+    IL[label="IL-0"]
+    XY[label="XY-0"]
+    JF[label="JF-15"]
+    UK[label="UK-18"]
+    CA[label="CA-13"]
+    BL[label="BL-0"]
+    GW[label="GW-16"]
+    CQ[label="CQ-0"]
+    HK[label="HK-0"]
+    BO[label="BO-4"]
+    TU[label="TU-11"]
+    AZ[label="AZ-0"]
+    FP[label="FP-5"]
+    LE[label="LE-14"]
+    IE[label="IE-0"]
+    NZ[label="NZ-0"]
+    DM[label="DM-3"]
+    YH[label="YH-21"]
+    BK[label="BK-0"]
+    LK[label="LK-0"]
+    AR[label="AR-20"]
+    ZJ[label="ZJ-9"]
+    FR[label="FR-0"]
+
+    TZ -> ZJ, DM
+    LH -> FP, IS
+    AA -> XU, JH, CD, WY, HK
+    GP -> BO, KL
+    GN -> QO, FP
+    QO -> CA, GN
+    JT -> BL
+    DF -> BO, HK
+    UM -> OS, LE
+    KJ -> YF, UK
+    UX -> WM, ZI
+    ZI -> UX, AR
+    YF -> KJ, EK
+    SX -> DM, CD
+    KZ -> FR, LE
+    IH -> DM, IE
+    EL -> WQ, BO
+    CD -> AA, SX
+    OR -> FP, IR
+    EK -> YF, LK
+    UE -> FP, LG
+    WQ -> EL, DM
+    XI -> YH, DM
+    GO -> BO, CQ
+    IR -> ZJ, OR
+    WY -> UI, AA
+    JH -> AA, CA
+    WM -> UX, YH
+    OS -> UM, CA
+    AE -> FP, YH
+    LG -> UE, LE
+    IS -> LH, AR
+    XU -> AA, TU
+    KL -> GP, TU
+    LV -> UK, TU
+    UI -> ZJ, WY
+    IL -> GW, LK
+    XY -> AZ, CA
+    JF -> FR, BK
+    UK -> LV, KJ
+    CA -> JH, XY, QO, BK, OS
+    BL -> JT, GW
+    GW -> IL, BL
+    CQ -> ZJ, GO
+    HK -> DF, AA
+    BO -> GO, GP, EL, DF
+    TU -> XU, IE, KL, LV
+    AZ -> ZJ, XY
+    FP -> GN, AE, UE, LH, OR
+    LE -> KZ, LG, UM
+    IE -> IH, TU
+    NZ -> YH, AR
+    DM -> WQ, IH, TZ, SX, XI
+    YH -> WM, NZ, AE, XI
+    BK -> JF, CA
+    LK -> EK, IL
+    AR -> IS, NZ, ZI
+    ZJ -> IR, AZ, TZ, UI, CQ
+    FR -> JF, KZ
+}
+

@@ -1,156 +1,154 @@
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
-use std::cmp::Ordering;
+use std::collections::HashMap;
+use std::collections::HashSet;
 
-
-#[derive(Copy, Clone, Debug)]
-struct Point {
-    x: i32,
-    y: i32,
+#[derive(Debug,Clone)]
+struct Valve {
+    flow: u8,
+    tunnels: Vec<String>,
 }
 
-impl Point {
-    fn distance(&self, other: &Self) -> i32 {
-        (self.x - other.x).abs() + (self.y - other.y).abs()
-    }
-}
-
-#[derive(Copy, Clone, Debug)]
-struct Pair {
-    sensor: Point,
-    beacon: Point,
-    distance: i32,
-}
-
-impl Pair {
-    fn new(sensor: Point, beacon: Point) -> Self {
-        Pair {
-            sensor: sensor,
-            beacon: beacon,
-            distance: sensor.distance(&beacon),
+impl Valve {
+    fn new(flow: u8, tunnels: Vec<String>) -> Self {
+        Valve {
+            flow: flow,
+            tunnels: tunnels,
         }
     }
 }
 
-#[derive(Copy, Clone, Debug)]
-struct Stretch {
-    from: i32,
-    to: i32,
+#[derive(Debug,Clone)]
+struct Route {
+    open_valves: HashSet<String>,
+    score_per_tick: u32,
+    score: u32,
+    minutes: u8,
 }
-impl Ord for Stretch {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.from.cmp(&other.from)
+
+impl Route {
+    fn tick(&mut self) -> bool {
+        self.minutes -= 1;
+        if self.minutes > 0 {
+            self.score += self.score_per_tick;
+        }
+        //println!("{}, {}", self.minutes, self.score);
+        self.minutes > 0
+    }
+
+    fn open_valve(&mut self, name: String, flow: u8) -> bool {
+        if ! self.tick() {
+            return false;
+        }
+        self.open_valves.insert(name);
+        //println!("{:?}", self.open_valves);
+        self.score_per_tick += flow as u32;
+        true
+    }
+
+    fn valve_is_closed(&self, name: String) -> bool {
+        !self.open_valves.contains(&name)
     }
 }
 
-impl PartialOrd for Stretch {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
+fn score<'a>(valves: &HashMap<String, Valve>, name: String, route: &'a mut Route) {
+    let valve = &valves[&name];
+    if valve.flow > 0 && route.valve_is_closed(name.clone()) {
+        if !route.open_valve(name.clone(), valve.flow) {
+            return;
+        }
     }
-}
+    // try all the tunnels, see which one has the highest score
+    let mut max_score = 0u32;
+    for tunnel in valve.tunnels.clone().into_iter().rev() {
+        //println!("Go from {} to {}", name, tunnel);
+        let mut new_route = route.clone();
+        if ! new_route.tick() {
+            return;
+        }
+        score(valves, tunnel.clone(), &mut new_route);
+        max_score = std::cmp::max(new_route.score, max_score);
+    }
+    route.score += max_score;
 
-impl PartialEq for Stretch {
-    fn eq(&self, other: &Self) -> bool {
-        self.from == other.from 
-   }
 }
-
-impl Eq for Stretch { }
 
 fn main() {
-    let mut pairs: Vec<Pair> = Vec::new();
 
-    let max_coord = 4000000i32;
-    pairs.push(Pair::new(Point{x: 3088287, y: 2966967}, Point{x: 3340990,  y: 2451747}));
-    pairs.push(Pair::new(Point{x: 289570,  y: 339999 }, Point{x: 20077,    y: 1235084}));
-    pairs.push(Pair::new(Point{x: 1940197, y: 3386754}, Point{x: 2010485,  y: 3291030}));
-    pairs.push(Pair::new(Point{x: 1979355, y: 2150711}, Point{x: 1690952,  y: 2000000}));
-    pairs.push(Pair::new(Point{x: 2859415, y: 1555438}, Point{x: 3340990,  y: 2451747}));
-    pairs.push(Pair::new(Point{x: 1015582, y: 2054755}, Point{x: 1690952,  y: 2000000}));
-    pairs.push(Pair::new(Point{x: 1794782, y: 3963737}, Point{x: 2183727,  y: 4148084}));
-    pairs.push(Pair::new(Point{x: 2357608, y: 2559811}, Point{x: 2010485,  y: 3291030}));
-    pairs.push(Pair::new(Point{x: 2936,    y: 1218210}, Point{x: 20077,    y: 1235084}));
-    pairs.push(Pair::new(Point{x: 2404143, y: 3161036}, Point{x: 2010485,  y: 3291030}));
-    pairs.push(Pair::new(Point{x: 12522,   y: 1706324}, Point{x: 20077,    y: 1235084}));
-    pairs.push(Pair::new(Point{x: 1989162, y: 3317864}, Point{x: 2010485,  y: 3291030}));
-    pairs.push(Pair::new(Point{x: 167388,  y: 3570975}, Point{x: -1018858, y: 4296788}));
-    pairs.push(Pair::new(Point{x: 1586527, y: 2233885}, Point{x: 1690952,  y: 2000000}));
-    pairs.push(Pair::new(Point{x: 746571,  y: 1442967}, Point{x: 20077,    y: 1235084}));
-    pairs.push(Pair::new(Point{x: 3969726, y: 3857699}, Point{x: 3207147,  y: 4217920}));
-    pairs.push(Pair::new(Point{x: 1403393, y: 2413121}, Point{x: 1690952,  y: 2000000}));
-    pairs.push(Pair::new(Point{x: 2343717, y: 3649198}, Point{x: 2183727,  y: 4148084}));
-    pairs.push(Pair::new(Point{x: 1473424, y: 688269 }, Point{x: 2053598,  y: -169389}));
-    pairs.push(Pair::new(Point{x: 2669347, y: 190833 }, Point{x: 2053598,  y: -169389}));
-    pairs.push(Pair::new(Point{x: 2973167, y: 3783783}, Point{x: 3207147,  y: 4217920}));
-    pairs.push(Pair::new(Point{x: 2011835, y: 3314181}, Point{x: 2010485,  y: 3291030}));
-    pairs.push(Pair::new(Point{x: 1602224, y: 2989728}, Point{x: 2010485,  y: 3291030}));
-    pairs.push(Pair::new(Point{x: 3928889, y: 1064434}, Point{x: 3340990,  y: 2451747}));
-    pairs.push(Pair::new(Point{x: 2018358, y: 3301778}, Point{x: 2010485,  y: 3291030}));
-    pairs.push(Pair::new(Point{x: 1811905, y: 2084187}, Point{x: 1690952,  y: 2000000}));
-    pairs.push(Pair::new(Point{x: 1767697, y: 1873118}, Point{x: 1690952,  y: 2000000}));
-    pairs.push(Pair::new(Point{x: 260786,  y: 1154525}, Point{x: 20077,    y: 1235084}));
+    let mut valves: HashMap<String,Valve> = HashMap::new();
 
-    // example data:
-    //let max_coord = 40u32;
-    //pairs.push(Pair{sensor: Point{x: 2, y: 18}, beacon: Point{x: -2, y: 15}});
-    //pairs.push(Pair{sensor: Point{x: 9, y: 16}, beacon: Point{x: 10, y: 16}});
-    //pairs.push(Pair{sensor: Point{x: 13, y: 2}, beacon: Point{x: 15, y: 3}});
-    //pairs.push(Pair{sensor: Point{x: 12, y: 14}, beacon: Point{x: 10, y: 16}});
-    //pairs.push(Pair{sensor: Point{x: 10, y: 20}, beacon: Point{x: 10, y: 16}});
-    //pairs.push(Pair{sensor: Point{x: 14, y: 17}, beacon: Point{x: 10, y: 16}});
-    //pairs.push(Pair{sensor: Point{x: 8, y: 7}, beacon: Point{x: 2, y: 10}});
-    //pairs.push(Pair{sensor: Point{x: 2, y: 0}, beacon: Point{x: 2, y: 10}});
-    //pairs.push(Pair{sensor: Point{x: 0, y: 11}, beacon: Point{x: 2, y: 10}});
-    //pairs.push(Pair{sensor: Point{x: 20, y: 14}, beacon: Point{x: 25, y: 17}});
-    //pairs.push(Pair{sensor: Point{x: 17, y: 20}, beacon: Point{x: 21, y: 22}});
-    //pairs.push(Pair{sensor: Point{x: 16, y: 7}, beacon: Point{x: 15, y: 3}});
-    //pairs.push(Pair{sensor: Point{x: 14, y: 3}, beacon: Point{x: 15, y: 3}});
-    //pairs.push(Pair{sensor: Point{x: 20, y: 1}, beacon: Point{x: 15, y: 3}});
+    // {{{
+    valves.insert(String::from("TZ"), Valve{ flow: 0, tunnels: vec![String::from("ZJ"), String::from("DM")]});
+    valves.insert(String::from("LH"), Valve{ flow: 0, tunnels: vec![String::from("FP"), String::from("IS")]});
+    valves.insert(String::from("AA"), Valve{ flow: 0, tunnels: vec![String::from("XU"), String::from("JH"), String::from("CD"), String::from("WY"), String::from("HK")]});
+    valves.insert(String::from("GP"), Valve{ flow: 0, tunnels: vec![String::from("BO"), String::from("KL")]});
+    valves.insert(String::from("GN"), Valve{ flow: 0, tunnels: vec![String::from("QO"), String::from("FP")]});
+    valves.insert(String::from("QO"), Valve{ flow: 0, tunnels: vec![String::from("CA"), String::from("GN")]});
+    valves.insert(String::from("JT"), Valve{ flow: 22, tunnels: vec![String::from("BL")]});
+    valves.insert(String::from("DF"), Valve{ flow: 0, tunnels: vec![String::from("BO"), String::from("HK")]});
+    valves.insert(String::from("UM"), Valve{ flow: 0, tunnels: vec![String::from("OS"), String::from("LE")]});
+    valves.insert(String::from("KJ"), Valve{ flow: 0, tunnels: vec![String::from("YF"), String::from("UK")]});
+    valves.insert(String::from("UX"), Valve{ flow: 23, tunnels: vec![String::from("WM"), String::from("ZI")]});
+    valves.insert(String::from("ZI"), Valve{ flow: 0, tunnels: vec![String::from("UX"), String::from("AR")]});
+    valves.insert(String::from("YF"), Valve{ flow: 0, tunnels: vec![String::from("KJ"), String::from("EK")]});
+    valves.insert(String::from("SX"), Valve{ flow: 0, tunnels: vec![String::from("DM"), String::from("CD")]});
+    valves.insert(String::from("KZ"), Valve{ flow: 0, tunnels: vec![String::from("FR"), String::from("LE")]});
+    valves.insert(String::from("IH"), Valve{ flow: 0, tunnels: vec![String::from("DM"), String::from("IE")]});
+    valves.insert(String::from("EL"), Valve{ flow: 0, tunnels: vec![String::from("WQ"), String::from("BO")]});
+    valves.insert(String::from("CD"), Valve{ flow: 0, tunnels: vec![String::from("AA"), String::from("SX")]});
+    valves.insert(String::from("OR"), Valve{ flow: 0, tunnels: vec![String::from("FP"), String::from("IR")]});
+    valves.insert(String::from("EK"), Valve{ flow: 19, tunnels: vec![String::from("YF"), String::from("LK")]});
+    valves.insert(String::from("UE"), Valve{ flow: 0, tunnels: vec![String::from("FP"), String::from("LG")]});
+    valves.insert(String::from("WQ"), Valve{ flow: 0, tunnels: vec![String::from("EL"), String::from("DM")]});
+    valves.insert(String::from("XI"), Valve{ flow: 0, tunnels: vec![String::from("YH"), String::from("DM")]});
+    valves.insert(String::from("GO"), Valve{ flow: 0, tunnels: vec![String::from("BO"), String::from("CQ")]});
+    valves.insert(String::from("IR"), Valve{ flow: 0, tunnels: vec![String::from("ZJ"), String::from("OR")]});
+    valves.insert(String::from("WY"), Valve{ flow: 0, tunnels: vec![String::from("UI"), String::from("AA")]});
+    valves.insert(String::from("JH"), Valve{ flow: 0, tunnels: vec![String::from("AA"), String::from("CA")]});
+    valves.insert(String::from("WM"), Valve{ flow: 0, tunnels: vec![String::from("UX"), String::from("YH")]});
+    valves.insert(String::from("OS"), Valve{ flow: 0, tunnels: vec![String::from("UM"), String::from("CA")]});
+    valves.insert(String::from("AE"), Valve{ flow: 0, tunnels: vec![String::from("FP"), String::from("YH")]});
+    valves.insert(String::from("LG"), Valve{ flow: 0, tunnels: vec![String::from("UE"), String::from("LE")]});
+    valves.insert(String::from("IS"), Valve{ flow: 0, tunnels: vec![String::from("LH"), String::from("AR")]});
+    valves.insert(String::from("XU"), Valve{ flow: 0, tunnels: vec![String::from("AA"), String::from("TU")]});
+    valves.insert(String::from("KL"), Valve{ flow: 0, tunnels: vec![String::from("GP"), String::from("TU")]});
+    valves.insert(String::from("LV"), Valve{ flow: 0, tunnels: vec![String::from("UK"), String::from("TU")]});
+    valves.insert(String::from("UI"), Valve{ flow: 0, tunnels: vec![String::from("ZJ"), String::from("WY")]});
+    valves.insert(String::from("IL"), Valve{ flow: 0, tunnels: vec![String::from("GW"), String::from("LK")]});
+    valves.insert(String::from("XY"), Valve{ flow: 0, tunnels: vec![String::from("AZ"), String::from("CA")]});
+    valves.insert(String::from("JF"), Valve{ flow: 15, tunnels: vec![String::from("FR"), String::from("BK")]});
+    valves.insert(String::from("UK"), Valve{ flow: 18, tunnels: vec![String::from("LV"), String::from("KJ")]});
+    valves.insert(String::from("CA"), Valve{ flow: 13, tunnels: vec![String::from("JH"), String::from("XY"), String::from("QO"), String::from("BK"), String::from("OS")]});
+    valves.insert(String::from("BL"), Valve{ flow: 0, tunnels: vec![String::from("JT"), String::from("GW")]});
+    valves.insert(String::from("GW"), Valve{ flow: 16, tunnels: vec![String::from("IL"), String::from("BL")]});
+    valves.insert(String::from("CQ"), Valve{ flow: 0, tunnels: vec![String::from("ZJ"), String::from("GO")]});
+    valves.insert(String::from("HK"), Valve{ flow: 0, tunnels: vec![String::from("DF"), String::from("AA")]});
+    valves.insert(String::from("BO"), Valve{ flow: 4, tunnels: vec![String::from("GO"), String::from("GP"), String::from("EL"), String::from("DF")]});
+    valves.insert(String::from("TU"), Valve{ flow: 11, tunnels: vec![String::from("XU"), String::from("IE"), String::from("KL"), String::from("LV")]});
+    valves.insert(String::from("AZ"), Valve{ flow: 0, tunnels: vec![String::from("ZJ"), String::from("XY")]});
+    valves.insert(String::from("FP"), Valve{ flow: 5, tunnels: vec![String::from("GN"), String::from("AE"), String::from("UE"), String::from("LH"), String::from("OR")]});
+    valves.insert(String::from("LE"), Valve{ flow: 14, tunnels: vec![String::from("KZ"), String::from("LG"), String::from("UM")]});
+    valves.insert(String::from("IE"), Valve{ flow: 0, tunnels: vec![String::from("IH"), String::from("TU")]});
+    valves.insert(String::from("NZ"), Valve{ flow: 0, tunnels: vec![String::from("YH"), String::from("AR")]});
+    valves.insert(String::from("DM"), Valve{ flow: 3, tunnels: vec![String::from("WQ"), String::from("IH"), String::from("TZ"), String::from("SX"), String::from("XI")]});
+    valves.insert(String::from("YH"), Valve{ flow: 21, tunnels: vec![String::from("WM"), String::from("NZ"), String::from("AE"), String::from("XI")]});
+    valves.insert(String::from("BK"), Valve{ flow: 0, tunnels: vec![String::from("JF"), String::from("CA")]});
+    valves.insert(String::from("LK"), Valve{ flow: 0, tunnels: vec![String::from("EK"), String::from("IL")]});
+    valves.insert(String::from("AR"), Valve{ flow: 20, tunnels: vec![String::from("IS"), String::from("NZ"), String::from("ZI")]});
+    valves.insert(String::from("ZJ"), Valve{ flow: 9, tunnels: vec![String::from("IR"), String::from("AZ"), String::from("TZ"), String::from("UI"), String::from("CQ")]});
+    valves.insert(String::from("FR"), Valve{ flow: 0, tunnels: vec![String::from("JF"), String::from("KZ")]});
+    // }}}
 
-    //println!("{:?}", pairs);
-    'yloop: for the_y in 0i32..=max_coord {
-        let mut ranges: Vec<Stretch> = Vec::new();
-        for pair in pairs.iter() {
-            if (pair.sensor.y - the_y).abs() <= pair.distance {
-                let left  = pair.sensor.x - (pair.distance - (pair.sensor.y - the_y).abs());
-                let right = pair.sensor.x + (pair.distance - (pair.sensor.y - the_y).abs());
-                if ! (left > max_coord || right < 0) {
-                    ranges.push(Stretch{from: left, to: right});
-                }
-                //println!("Covers {left} - {right}");
-            }
-        }
-        ranges.sort();
-        let mut r = 1usize;
-        loop {
-            // if r is completely within r-1, remove r, it's just getting in the way
-            if ranges[r].from >= ranges[r-1].from && ranges[r].to <= ranges[r-1].to {
-                ranges.remove(r);
-                // r now points to the next range
-                // continue without incrementing
-                if r >= ranges.len() {
-                    break;
-                }
-                continue;
-            }
-            if ranges[r-1].to < ranges[r].from {
-                let foundy = the_y as u128;
-                let foundx = ranges[r].from as u128 - 1;
-                println!("Found at {foundx}, {foundy}");
-                println!("Frequency: {}", foundx * max_coord as u128 + foundy);
-                println!("{:?}", ranges);
-                break 'yloop;
-            }
-            r += 1;
-            if r >= ranges.len() {
-                break;
-            }
-        }
-        //break;
-    }
+    let mut route = Route {
+        open_valves: HashSet::new(),
+        score_per_tick: 0,
+        score: 0,
+        minutes: 30,
+    };
 
-
+    score(&valves, String::from("AA"), &mut route);
+    println!("{}", route.score);
 }
 
 // The output is wrapped in a Result to allow matching on errors
