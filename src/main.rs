@@ -22,7 +22,6 @@ impl Valve {
 #[derive(Debug,Clone)]
 struct Route {
     open_valves: HashSet<String>,
-    score_per_tick: u32,
     score: u32,
     minutes: u8,
 }
@@ -30,44 +29,40 @@ struct Route {
 impl Route {
     fn tick(&mut self) -> bool {
         self.minutes -= 1;
-        if self.minutes > 0 {
-            self.score += self.score_per_tick;
-        }
-        //println!("{}, {}", self.minutes, self.score);
         self.minutes > 0
     }
 
-    fn open_valve(&mut self, name: String, flow: u8) -> bool {
+    fn open_valve(&mut self, name: &str, flow: u8) -> bool {
         if ! self.tick() {
             return false;
         }
-        self.open_valves.insert(name);
-        //println!("{:?}", self.open_valves);
-        self.score_per_tick += flow as u32;
+        self.open_valves.insert(name.to_owned());
+        self.score += (30 - self.minutes as u32) * flow as u32;
+        println!("New score: {}", self.score);
         true
     }
 
-    fn valve_is_closed(&self, name: String) -> bool {
-        !self.open_valves.contains(&name)
+    fn valve_is_closed(&self, name: &str) -> bool {
+        !self.open_valves.contains(name)
     }
 }
 
-fn score<'a>(valves: &HashMap<String, Valve>, name: String, route: &'a mut Route) {
-    let valve = &valves[&name];
-    if valve.flow > 0 && route.valve_is_closed(name.clone()) {
-        if !route.open_valve(name.clone(), valve.flow) {
+fn score<'a>(valves: &HashMap<String, Valve>, name: &str, route: &'a mut Route) {
+    let valve = &valves[name];
+    if valve.flow > 0 && route.valve_is_closed(&name) {
+        if !route.open_valve(&name, valve.flow) {
             return;
         }
     }
     // try all the tunnels, see which one has the highest score
     let mut max_score = 0u32;
-    for tunnel in valve.tunnels.clone().into_iter().rev() {
+    for tunnel in valve.tunnels.to_owned().into_iter().rev() {
         //println!("Go from {} to {}", name, tunnel);
-        let mut new_route = route.clone();
+        let mut new_route = route.to_owned();
         if ! new_route.tick() {
             return;
         }
-        score(valves, tunnel.clone(), &mut new_route);
+        score(valves, &tunnel.to_owned(), &mut new_route);
         max_score = std::cmp::max(new_route.score, max_score);
     }
     route.score += max_score;
@@ -142,12 +137,11 @@ fn main() {
 
     let mut route = Route {
         open_valves: HashSet::new(),
-        score_per_tick: 0,
         score: 0,
         minutes: 30,
     };
 
-    score(&valves, String::from("AA"), &mut route);
+    score(&valves, "AA", &mut route);
     println!("{}", route.score);
 }
 
