@@ -21,22 +21,15 @@ fn mix(list: &mut Vec<Value>) {
     let length = list.len();
     let mut initial = 0usize;
     loop {
-        let pos: usize;
-        let found = list.iter().position(|v| v.initial == initial);
-        match found {
-            Some(position) => pos = position,
-            None => break
-        }
+        let pos = list.iter().position(|v| v.initial == initial).unwrap();
         //println!("{}", list[pos]);
         //println!("{:?}", list.iter().map(|v| v.value).collect::<Vec<i128>>());
-        let mut value = list.remove(pos);
+        let value = list.remove(pos);
         let new_pos = (pos as i128 + value.value).rem_euclid(length as i128 -1);
         println!("Moving value {} from {} to {}", value.value, pos, new_pos);
         list.insert(new_pos as usize, value);
 
-        //if (new_pos as usize) < pos {
         initial += 1;
-        //}
 
         if initial >= length {
             break;
