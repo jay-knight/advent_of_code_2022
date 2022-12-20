@@ -4,56 +4,67 @@ use std::path::Path;
 
 #[derive(Debug)]
 struct Value {
-    value: i32,
-    seen: bool,
+    value: i128,
+    initial: usize,
 }
 
 impl Value {
-    fn new(value: i32) -> Self {
+    fn new(value: i128, initial: usize) -> Self {
         Self {
             value: value,
-            seen: false,
+            initial: initial,
         }
+    }
+}
+
+fn mix(list: &mut Vec<Value>) {
+    let length = list.len();
+    let mut initial = 0usize;
+    loop {
+        let pos: usize;
+        let found = list.iter().position(|v| v.initial == initial);
+        match found {
+            Some(position) => pos = position,
+            None => break
+        }
+        //println!("{}", list[pos]);
+        //println!("{:?}", list.iter().map(|v| v.value).collect::<Vec<i128>>());
+        let mut value = list.remove(pos);
+        let new_pos = (pos as i128 + value.value).rem_euclid(length as i128 -1);
+        println!("Moving value {} from {} to {}", value.value, pos, new_pos);
+        list.insert(new_pos as usize, value);
+
+        //if (new_pos as usize) < pos {
+        initial += 1;
+        //}
+
+        if initial >= length {
+            break;
+        }
+
     }
 }
 
 fn main() {
 
     let mut list: Vec<Value> = Vec::new();
+    let key: i128 = 811589153;
     if let Ok(lines) = read_lines("./20.input") {
+        let mut line_number: usize = 0;
         for line in lines {
             if let Ok(line_str) = line {
-                list.push(Value::new(line_str.parse::<i32>().unwrap()));
+                list.push(Value::new(line_str.parse::<i128>().unwrap() * key, line_number));
             }
+            line_number += 1;
         }
+    }
+
+    for _ in 0..10 {
+        mix(&mut list);
     }
 
     let length = list.len();
-    let mut pos = 0usize;
-    loop {
-        //println!("{}", list[pos]);
-        if list[pos].seen {
-            //println!("Skipping seen value {} at {}", list[pos].value, pos);
-            pos +=1;
-            continue;
-        }
-        //println!("{:?}", list.iter().map(|v| v.value).collect::<Vec<i32>>());
-        let mut value = list.remove(pos);
-        let new_pos = (pos as i32 + value.value).rem_euclid(length as i32 -1);
-        value.seen = true;
-        println!("Moving value {} from {} to {}", value.value, pos, new_pos);
-        list.insert(new_pos as usize, value);
-
-        if (new_pos as usize) < pos {
-            pos += 1;
-        }
-
-        if pos >= length {
-            break;
-        }
-
-    }
-    //println!("{:?}", list.iter().map(|v| v.value).collect::<Vec<i32>>());
+    //println!("{:?}", list.iter().map(|v| v.value).collect::<Vec<i128>>());
     let zero_index = list.iter().position(|v| v.value == 0).unwrap();
     println!("{zero_index}");
     let onek   = list[(zero_index + 1000).rem_euclid(length)].value;

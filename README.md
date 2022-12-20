@@ -23,7 +23,7 @@ Day | Star 1 | Star 2
 [17](https://adventofcode.com/2022/day/17) | | |
 [18](https://adventofcode.com/2022/day/18) | | |
 [19](https://adventofcode.com/2022/day/18) | | |
-[20](https://adventofcode.com/2022/day/20) | | |
+[20](https://adventofcode.com/2022/day/20) | [solution](https://github.com/jay-knight/advent_of_code_2022/blob/s39/src/main.rs) | [solution](https://github.com/jay-knight/advent_of_code_2022/blob/s40/src/main.rs) |
 [21](https://adventofcode.com/2022/day/21) | | |
 [22](https://adventofcode.com/2022/day/22) | | |
 [23](https://adventofcode.com/2022/day/23) | | |
