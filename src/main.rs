@@ -21,7 +21,6 @@ struct Expression {
 
 #[derive(Debug,Clone)]
 struct Monkey {
-    name: String,
     value: Option<i128>,
     expression: Option<Expression>,
 }
@@ -34,7 +33,6 @@ struct Monkeys {
 impl Monkeys {
     fn insert(&mut self, name: &str, value: Option<i128>, expression: Option<Expression>) {
         self.monkeys.insert(name.to_string(), Monkey {
-            name: name.to_string(),
             value: value,
             expression: expression,
         });
@@ -53,7 +51,7 @@ impl Monkeys {
                     Operation::Times  => self.get_value(&expression.left) * self.get_value(&expression.right),
                     Operation::Divide => self.get_value(&expression.left) / self.get_value(&expression.right),
                 };
-                self.monkeys.entry(String::from(name)).and_modify(|m| m.value = Some(value));
+                //self.monkeys.entry(String::from(name)).and_modify(|m| m.value = Some(value));
                 value
             }
         }
@@ -93,7 +91,18 @@ fn main() {
                 //println!("{name} ... {expression}");
             }
         }
-        println!("{}", monkeys.get_value("root"));
+
+        for i in 0..100 {
+            // this was kind of an iterative guessing game
+            let value: i128 = 3403989691750 + (1*i);
+            monkeys.monkeys.entry(String::from("humn")).and_modify(|m| m.value = Some(value));
+            let root_monkey = monkeys.monkeys.get("root").unwrap();
+            let root_left  = root_monkey.expression.to_owned().unwrap().left;
+            let root_right = root_monkey.expression.to_owned().unwrap().right;
+            let left_val = monkeys.get_value(&root_left);
+            let right_val = monkeys.get_value(&root_right);
+            println!("{} ({}): {} - {} = {}", i, value, left_val, right_val, left_val - right_val);
+        }
     }
 }
 
