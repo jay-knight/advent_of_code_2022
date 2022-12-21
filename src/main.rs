@@ -1,70 +1,100 @@
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
+use std::collections::HashMap;
+use regex::Regex;
 
-#[derive(Debug)]
-struct Value {
-    value: i128,
-    initial: usize,
+#[derive(Debug,Clone)]
+enum Operation {
+    Plus,
+    Minus,
+    Times,
+    Divide,
 }
 
-impl Value {
-    fn new(value: i128, initial: usize) -> Self {
-        Self {
+#[derive(Debug,Clone)]
+struct Expression {
+    left: String,
+    right: String,
+    operation: Operation,
+}
+
+#[derive(Debug,Clone)]
+struct Monkey {
+    name: String,
+    value: Option<i128>,
+    expression: Option<Expression>,
+}
+
+#[derive(Debug,Clone)]
+struct Monkeys {
+    monkeys: HashMap<String, Monkey>,
+}
+
+impl Monkeys {
+    fn insert(&mut self, name: &str, value: Option<i128>, expression: Option<Expression>) {
+        self.monkeys.insert(name.to_string(), Monkey {
+            name: name.to_string(),
             value: value,
-            initial: initial,
+            expression: expression,
+        });
+    }
+
+    fn get_value(&mut self, name: &str) -> i128 {
+        let monkey = self.monkeys.get(name).unwrap();
+        match monkey.value {
+            Some(value) => value,
+            None => {
+                let expression = monkey.expression.to_owned().unwrap();
+                //println!("{:?} {:?}", self.get_value(&expression.left), self.get_value(&expression.right));
+                let value = match expression.operation {
+                    Operation::Plus   => self.get_value(&expression.left) + self.get_value(&expression.right),
+                    Operation::Minus  => self.get_value(&expression.left) - self.get_value(&expression.right),
+                    Operation::Times  => self.get_value(&expression.left) * self.get_value(&expression.right),
+                    Operation::Divide => self.get_value(&expression.left) / self.get_value(&expression.right),
+                };
+                self.monkeys.entry(String::from(name)).and_modify(|m| m.value = Some(value));
+                value
+            }
         }
     }
-}
 
-fn mix(list: &mut Vec<Value>) {
-    let length = list.len();
-    let mut initial = 0usize;
-    loop {
-        let pos = list.iter().position(|v| v.initial == initial).unwrap();
-        //println!("{}", list[pos]);
-        //println!("{:?}", list.iter().map(|v| v.value).collect::<Vec<i128>>());
-        let value = list.remove(pos);
-        let new_pos = (pos as i128 + value.value).rem_euclid(length as i128 -1);
-        println!("Moving value {} from {} to {}", value.value, pos, new_pos);
-        list.insert(new_pos as usize, value);
-
-        initial += 1;
-
-        if initial >= length {
-            break;
-        }
-
-    }
 }
 
 fn main() {
-
-    let mut list: Vec<Value> = Vec::new();
-    let key: i128 = 811589153;
-    if let Ok(lines) = read_lines("./20.input") {
-        let mut line_number: usize = 0;
+    if let Ok(lines) = read_lines("./21.input") {
+        let mut monkeys = Monkeys{monkeys:HashMap::new()};
         for line in lines {
             if let Ok(line_str) = line {
-                list.push(Value::new(line_str.parse::<i128>().unwrap() * key, line_number));
+                //println!("{line_str}");
+                let (name, expression_str) = line_str.split_once(": ").unwrap();
+                match expression_str.parse::<i128>() {
+                    Ok(value) => monkeys.insert(name, Some(value), None),
+                    Err(_) => {
+                        let re = Regex::new(r"([a-z]{4}) ([\+\-\*/]) ([a-z]{4})").unwrap();
+                        let caps = re.captures(expression_str).unwrap();
+                        //println!("{:?}", caps);
+                        monkeys.insert(name, None, Some(Expression {
+                            left: String::from(caps.get(1).unwrap().as_str()),
+                            right: String::from(caps.get(3).unwrap().as_str()),
+                            operation: match caps.get(2).unwrap().as_str().chars().nth(0) {
+                                Some('+') => Operation::Plus,
+                                Some('-') => Operation::Minus,
+                                Some('*') => Operation::Times,
+                                Some('/') => Operation::Divide,
+                                None      => panic!("I don't know this operation"),
+                                _      => panic!("I don't know this operation"),
+                            },
+
+                        }));
+
+                    },
+                }
+                //println!("{name} ... {expression}");
             }
-            line_number += 1;
         }
+        println!("{}", monkeys.get_value("root"));
     }
-
-    for _ in 0..10 {
-        mix(&mut list);
-    }
-
-    let length = list.len();
-    //println!("{:?}", list.iter().map(|v| v.value).collect::<Vec<i128>>());
-    let zero_index = list.iter().position(|v| v.value == 0).unwrap();
-    println!("{zero_index}");
-    let onek   = list[(zero_index + 1000).rem_euclid(length)].value;
-    let twok   = list[(zero_index + 2000).rem_euclid(length)].value;
-    let threek = list[(zero_index + 3000).rem_euclid(length)].value;
-    println!("{onek} + {twok} + {threek} = {}", onek + twok + threek);
-
 }
 
 // The output is wrapped in a Result to allow matching on errors
