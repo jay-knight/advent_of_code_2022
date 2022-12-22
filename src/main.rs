@@ -1,108 +1,77 @@
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
-use std::collections::HashMap;
-use regex::Regex;
+use std::collections::HashSet;
 
-#[derive(Debug,Clone)]
-enum Operation {
-    Plus,
-    Minus,
-    Times,
-    Divide,
+#[derive(Eq, Hash, PartialEq, Debug, Clone)]
+struct Point {
+    x: i8,
+    y: i8,
+    z: i8,
 }
 
-#[derive(Debug,Clone)]
-struct Expression {
-    left: String,
-    right: String,
-    operation: Operation,
-}
-
-#[derive(Debug,Clone)]
-struct Monkey {
-    value: Option<i128>,
-    expression: Option<Expression>,
-}
-
-#[derive(Debug,Clone)]
-struct Monkeys {
-    monkeys: HashMap<String, Monkey>,
-}
-
-impl Monkeys {
-    fn insert(&mut self, name: &str, value: Option<i128>, expression: Option<Expression>) {
-        self.monkeys.insert(name.to_string(), Monkey {
-            value: value,
-            expression: expression,
+impl Point {
+    fn neighbors(&self) -> Vec<Point> {
+        let mut neighbors: Vec<Point> = Vec::new();
+        neighbors.push(Point {
+            x: self.x+1,
+            y: self.y,
+            z: self.z,
         });
+        neighbors.push(Point {
+            x: self.x-1,
+            y: self.y,
+            z: self.z,
+        });
+        neighbors.push(Point {
+            x: self.x,
+            y: self.y+1,
+            z: self.z,
+        });
+        neighbors.push(Point {
+            x: self.x,
+            y: self.y-1,
+            z: self.z,
+        });
+        neighbors.push(Point {
+            x: self.x,
+            y: self.y,
+            z: self.z+1,
+        });
+        neighbors.push(Point {
+            x: self.x,
+            y: self.y,
+            z: self.z-1,
+        });
+        neighbors
     }
-
-    fn get_value(&mut self, name: &str) -> i128 {
-        let monkey = self.monkeys.get(name).unwrap();
-        match monkey.value {
-            Some(value) => value,
-            None => {
-                let expression = monkey.expression.to_owned().unwrap();
-                //println!("{:?} {:?}", self.get_value(&expression.left), self.get_value(&expression.right));
-                let value = match expression.operation {
-                    Operation::Plus   => self.get_value(&expression.left) + self.get_value(&expression.right),
-                    Operation::Minus  => self.get_value(&expression.left) - self.get_value(&expression.right),
-                    Operation::Times  => self.get_value(&expression.left) * self.get_value(&expression.right),
-                    Operation::Divide => self.get_value(&expression.left) / self.get_value(&expression.right),
-                };
-                //self.monkeys.entry(String::from(name)).and_modify(|m| m.value = Some(value));
-                value
-            }
-        }
-    }
-
 }
+
 
 fn main() {
-    if let Ok(lines) = read_lines("./21.input") {
-        let mut monkeys = Monkeys{monkeys:HashMap::new()};
+    if let Ok(lines) = read_lines("./18.input") {
+        let mut points: HashSet<Point> = HashSet::new();
         for line in lines {
             if let Ok(line_str) = line {
-                //println!("{line_str}");
-                let (name, expression_str) = line_str.split_once(": ").unwrap();
-                match expression_str.parse::<i128>() {
-                    Ok(value) => monkeys.insert(name, Some(value), None),
-                    Err(_) => {
-                        let re = Regex::new(r"([a-z]{4}) ([\+\-\*/]) ([a-z]{4})").unwrap();
-                        let caps = re.captures(expression_str).unwrap();
-                        //println!("{:?}", caps);
-                        monkeys.insert(name, None, Some(Expression {
-                            left: String::from(caps.get(1).unwrap().as_str()),
-                            right: String::from(caps.get(3).unwrap().as_str()),
-                            operation: match caps.get(2).unwrap().as_str().chars().nth(0) {
-                                Some('+') => Operation::Plus,
-                                Some('-') => Operation::Minus,
-                                Some('*') => Operation::Times,
-                                Some('/') => Operation::Divide,
-                                None      => panic!("I don't know this operation"),
-                                _      => panic!("I don't know this operation"),
-                            },
-
-                        }));
-
-                    },
-                }
-                //println!("{name} ... {expression}");
+                let coords: Vec<&str> = line_str.split(",").collect();
+                points.insert(Point {
+                    x: coords[0].parse::<i8>().unwrap(),
+                    y: coords[1].parse::<i8>().unwrap(),
+                    z: coords[2].parse::<i8>().unwrap(),
+                });
+                //println!("{:?}", points);
             }
         }
 
-        for i in 0..100 {
-            // this was kind of an iterative guessing game
-            let value: i128 = 3403989691750 + (1*i);
-            monkeys.monkeys.entry(String::from("humn")).and_modify(|m| m.value = Some(value));
-            let root_monkey = monkeys.monkeys.get("root").unwrap();
-            let root_left  = root_monkey.expression.to_owned().unwrap().left;
-            let root_right = root_monkey.expression.to_owned().unwrap().right;
-            let left_val = monkeys.get_value(&root_left);
-            let right_val = monkeys.get_value(&root_right);
-            println!("{} ({}): {} - {} = {}", i, value, left_val, right_val, left_val - right_val);
+        let mut surface_area = 0u32;
+        for point in points.clone() {
+            for neighbor in point.neighbors().iter() {
+                if ! points.contains(&neighbor) {
+                    surface_area += 1;
+                }
+            }
         }
+        println!("{surface_area}");
     }
 }
 
