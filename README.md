@@ -28,7 +28,7 @@ Day | Star 1 | Star 2
 [22](https://adventofcode.com/2022/day/22) | | |
 [23](https://adventofcode.com/2022/day/23) | | |
 [24](https://adventofcode.com/2022/day/24) | | |
-[25](https://adventofcode.com/2022/day/25) | | |
+[25](https://adventofcode.com/2022/day/25) | [solution](https://github.com/jay-knight/advent_of_code_2022/blob/s49/src/main.rs) | N/A |
 
 
 ## [Stats](https://adventofcode.com/2022/leaderboard/self)
@@ -36,6 +36,7 @@ Day | Star 1 | Star 2
 ```
       --------Part 1---------   --------Part 2---------
 Day       Time    Rank  Score       Time    Rank  Score
+ 25       >24h   16550      0          -       -      -
  21   17:55:43   16719      0   18:48:22   13903      0
  20   14:42:06   11110      0   15:07:21   10338      0
  18       >24h   23500      0          -       -      -
